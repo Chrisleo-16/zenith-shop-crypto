@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import ProductGrid from '@/components/ProductGrid';
@@ -6,12 +7,12 @@ import Cart from '@/components/Cart';
 import { Product } from '@/contexts/CartContext';
 
 const Index = () => {
+  const navigate = useNavigate();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const handleViewProduct = (product: Product) => {
     setSelectedProduct(product);
-    // In a real app, this would navigate to a product detail page
-    console.log('Viewing product:', product);
+    navigate(`/product/${product.id}`);
   };
 
   return (
@@ -32,9 +33,9 @@ const Index = () => {
             <div>
               <h4 className="font-semibold mb-3">Quick Links</h4>
               <ul className="space-y-2 text-sm text-white/70">
-                <li><a href="#" className="hover:text-accent smooth-transition">About Us</a></li>
-                <li><a href="#" className="hover:text-accent smooth-transition">Contact</a></li>
-                <li><a href="#" className="hover:text-accent smooth-transition">FAQ</a></li>
+                <li><Link to="/about" className="hover:text-accent smooth-transition">About Us</Link></li>
+                <li><Link to="/contact" className="hover:text-accent smooth-transition">Contact</Link></li>
+                <li><Link to="/faq" className="hover:text-accent smooth-transition">FAQ</Link></li>
               </ul>
             </div>
             <div>
@@ -48,9 +49,9 @@ const Index = () => {
             <div>
               <h4 className="font-semibold mb-3">Support</h4>
               <ul className="space-y-2 text-sm text-white/70">
-                <li><a href="#" className="hover:text-accent smooth-transition">Help Center</a></li>
-                <li><a href="#" className="hover:text-accent smooth-transition">Shipping Info</a></li>
-                <li><a href="#" className="hover:text-accent smooth-transition">Returns</a></li>
+                <li><Link to="/faq" className="hover:text-accent smooth-transition">Help Center</Link></li>
+                <li><Link to="/contact" className="hover:text-accent smooth-transition">Shipping Info</Link></li>
+                <li><Link to="/contact" className="hover:text-accent smooth-transition">Returns</Link></li>
               </ul>
             </div>
           </div>

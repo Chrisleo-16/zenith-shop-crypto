@@ -1,10 +1,10 @@
+import { useNavigate } from 'react-router-dom';
 import { X, Plus, Minus, ShoppingBag, CreditCard, Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartUtils } from '@/contexts/CartContext';
-import { useState } from 'react';
-import PaymentModal from './PaymentModal';
 
 const Cart = () => {
+  const navigate = useNavigate();
   const { 
     items, 
     isOpen, 
@@ -14,13 +14,12 @@ const Cart = () => {
     getTotalPrice, 
     clearCart 
   } = useCartUtils();
-  
-  const [showPayment, setShowPayment] = useState(false);
 
   if (!isOpen) return null;
 
   const handleCheckout = () => {
-    setShowPayment(true);
+    closeCart();
+    navigate('/checkout');
   };
 
   return (
@@ -156,13 +155,6 @@ const Cart = () => {
           )}
         </div>
       </div>
-
-      {/* Payment Modal */}
-      <PaymentModal 
-        isOpen={showPayment}
-        onClose={() => setShowPayment(false)}
-        total={getTotalPrice()}
-      />
     </>
   );
 };

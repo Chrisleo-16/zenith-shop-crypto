@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ShoppingCart, Search, Menu, X, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartUtils } from '@/contexts/CartContext';
@@ -13,7 +14,7 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
+          <Link to="/" className="flex items-center space-x-3">
             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-r from-accent to-neon-purple shadow-lg">
               <Store className="w-6 h-6 text-white" />
             </div>
@@ -25,7 +26,7 @@ const Header = () => {
                 Premium • Modern • Crypto
               </p>
             </div>
-          </div>
+          </Link>
 
           {/* Search Bar - Desktop */}
           <div className="hidden md:flex flex-1 max-w-lg mx-8">
@@ -40,15 +41,15 @@ const Header = () => {
 
           {/* Navigation - Desktop */}
           <nav className="hidden md:flex items-center space-x-6">
-            <a href="#" className="text-sm font-medium text-foreground hover:text-accent smooth-transition">
+            <Link to="/categories" className="text-sm font-medium text-foreground hover:text-accent smooth-transition">
               Products
-            </a>
-            <a href="#" className="text-sm font-medium text-foreground hover:text-accent smooth-transition">
+            </Link>
+            <Link to="/categories" className="text-sm font-medium text-foreground hover:text-accent smooth-transition">
               Categories
-            </a>
-            <a href="#" className="text-sm font-medium text-foreground hover:text-accent smooth-transition">
+            </Link>
+            <Link to="/about" className="text-sm font-medium text-foreground hover:text-accent smooth-transition">
               About
-            </a>
+            </Link>
           </nav>
 
           {/* Actions */}
@@ -97,15 +98,15 @@ const Header = () => {
                 />
               </div>
               <nav className="space-y-2">
-                <a href="#" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2">
+                <Link to="/categories" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2">
                   Products
-                </a>
-                <a href="#" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2">
+                </Link>
+                <Link to="/categories" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2">
                   Categories
-                </a>
-                <a href="#" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2">
+                </Link>
+                <Link to="/about" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2">
                   About
-                </a>
+                </Link>
               </nav>
             </div>
           </div>
