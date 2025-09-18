@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Search, Menu, X, Store } from 'lucide-react';
+import { ShoppingCart, Search, Menu, X, Store, User, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartUtils } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { getTotalItems, toggleCart } = useCartUtils();
+  const { user, isAdmin, signOut } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -54,6 +56,30 @@ const Header = () => {
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
+            {/* Auth Buttons */}
+            {user ? (
+              <div className="hidden md:flex items-center space-x-2">
+                {isAdmin && (
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/admin">
+                      <Shield className="w-4 h-4 mr-1" />
+                      Admin
+                    </Link>
+                  </Button>
+                )}
+                <Button variant="ghost" size="sm" onClick={signOut}>
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <Button variant="ghost" size="sm" asChild className="hidden md:flex">
+                <Link to="/auth">
+                  <User className="w-4 h-4 mr-1" />
+                  Sign In
+                </Link>
+              </Button>
+            )}
+            
             {/* Mobile Search */}
             <Button variant="ghost" size="icon" className="md:hidden">
               <Search className="w-4 h-4" />
