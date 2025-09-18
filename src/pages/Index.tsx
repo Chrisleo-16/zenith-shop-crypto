@@ -57,7 +57,7 @@ const Index = () => {
           </div>
           <div className="border-t border-white/20 pt-6">
             <p className="text-sm text-white/50">
-              © 2024 CryptoShop. All rights reserved. Built with ❤️ for the future.
+              © {new Date().getFullYear()} CryptoShop. All rights reserved. Built by <a href="https://github.com/Chrisleo-16/"> <u>Leo Chrisben</u> </a> for the future.
             </p>
           </div>
         </div>

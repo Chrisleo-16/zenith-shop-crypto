@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeftCircle } from 'lucide-react';
 
 const Auth = () => {
   const { user, signUp, signIn, loading } = useAuth();
@@ -140,6 +141,9 @@ const Auth = () => {
               </form>
             </TabsContent>
           </Tabs>
+          <div>
+            <Link to='/' className='flex justify-content-center items-center mt-4 text-center'> <ArrowLeftCircle className="w-4 h-4 mr-3" /> Back to Home </Link>
+          </div>
         </CardContent>
       </Card>
     </div>

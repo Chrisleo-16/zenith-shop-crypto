@@ -19,7 +19,7 @@ const HeroSection = () => {
       <div className="relative z-10 container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center text-white">
           {/* Badge */}
-          <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-8">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-8 mt-3">
             <Zap className="w-4 h-4 mr-2 text-electric-blue" />
             <span className="text-sm font-medium">Now Accepting Cryptocurrency Payments</span>
           </div>
@@ -44,13 +44,13 @@ const HeroSection = () => {
               Shop Now
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button variant="outline" size="lg" className="border-white/20 text-white hover:bg-white/10">
+            <Button variant="outline" size="lg" className="border-white/20 text-white bg-transparent hover:bg-white/10">
               Learn More
             </Button>
           </div>
 
           {/* Features */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto mb-2">
             <div className="premium-card bg-white/5 backdrop-blur-md border-white/10 text-center">
               <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-gradient-to-r from-accent to-electric-blue flex items-center justify-center">
                 <Coins className="w-6 h-6 text-white" />
@@ -61,7 +61,7 @@ const HeroSection = () => {
               </p>
             </div>
 
-            <div className="premium-card bg-white/5 backdrop-blur-md border-white/10 text-center">
+            <div className="premium-card bg-transparent backdrop-blur-sm border-white/10 text-center">
               <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-gradient-to-r from-neon-purple to-accent flex items-center justify-center">
                 <Shield className="w-6 h-6 text-white" />
               </div>
