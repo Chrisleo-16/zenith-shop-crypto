@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Search, Menu, X, Store, User, Shield } from 'lucide-react';
+import { ShoppingCart, Search, Menu, X, Store, User, Shield, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartUtils } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -56,7 +56,7 @@ const Header = () => {
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
-            {/* Auth Buttons */}
+            {/* Auth Buttons - Desktop */}
             {user ? (
               <div className="hidden md:flex items-center space-x-2">
                 {isAdmin && (
@@ -68,6 +68,7 @@ const Header = () => {
                   </Button>
                 )}
                 <Button variant="ghost" size="sm" onClick={signOut}>
+                  <LogOut className="w-4 h-4 mr-1" />
                   Sign Out
                 </Button>
               </div>
@@ -79,7 +80,7 @@ const Header = () => {
                 </Link>
               </Button>
             )}
-            
+
             {/* Mobile Search */}
             <Button variant="ghost" size="icon" className="md:hidden">
               <Search className="w-4 h-4" />
@@ -100,7 +101,7 @@ const Header = () => {
               )}
             </Button>
 
-            {/* Mobile Menu */}
+            {/* Mobile Menu Toggle */}
             <Button
               variant="ghost"
               size="icon"
@@ -116,6 +117,7 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden border-t border-border/40 py-4">
             <div className="space-y-4">
+              {/* Mobile Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -123,6 +125,8 @@ const Header = () => {
                   className="pl-10 rounded-xl border-border/40"
                 />
               </div>
+
+              {/* Navigation */}
               <nav className="space-y-2">
                 <Link to="/categories" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2">
                   Products
@@ -134,6 +138,33 @@ const Header = () => {
                   About
                 </Link>
               </nav>
+
+              {/* Auth Buttons - Mobile */}
+              <div className="pt-4 border-t border-border/40 space-y-2">
+                {user ? (
+                  <>
+                    {isAdmin && (
+                      <Button variant="ghost" size="sm" asChild className="w-full justify-start">
+                        <Link to="/admin">
+                          <Shield className="w-4 h-4 mr-1" />
+                          Admin
+                        </Link>
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="sm" onClick={signOut} className="w-full justify-start">
+                      <LogOut className="w-4 h-4 mr-1" />
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <Button variant="ghost" size="sm" asChild className="w-full justify-start">
+                    <Link to="/auth">
+                      <User className="w-4 h-4 mr-1" />
+                      Sign In
+                    </Link>
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         )}

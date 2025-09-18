@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,6 +12,7 @@ import EmergencyControls from '@/components/admin/EmergencyControls';
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
+  const [activeTab, setActiveTab] = useState("crypto-config");
 
   if (loading) {
     return (
@@ -60,14 +61,31 @@ const AdminDashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="crypto-config" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          
+          {/* Desktop Tabs */}
+          <TabsList className="hidden md:grid w-full grid-cols-5">
             <TabsTrigger value="crypto-config">Payment Config</TabsTrigger>
             <TabsTrigger value="backup-addresses">Backup Addresses</TabsTrigger>
             <TabsTrigger value="transactions">Transaction Monitor</TabsTrigger>
             <TabsTrigger value="security-log">Security Audit</TabsTrigger>
             <TabsTrigger value="emergency">Emergency Controls</TabsTrigger>
           </TabsList>
+
+          {/* Mobile Dropdown */}
+          <div className="block md:hidden mb-4">
+            <select
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+              className="w-full border rounded-md p-3 bg-background"
+            >
+              <option value="crypto-config">Payment Config</option>
+              <option value="backup-addresses">Backup Addresses</option>
+              <option value="transactions">Transaction Monitor</option>
+              <option value="security-log">Security Audit</option>
+              <option value="emergency">Emergency Controls</option>
+            </select>
+          </div>
 
           <TabsContent value="crypto-config" className="space-y-6">
             <CryptoConfiguration />

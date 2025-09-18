@@ -9,23 +9,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeftCircle } from 'lucide-react';
 
 const Auth = () => {
-  const { user, signUp, signIn, loading } = useAuth();
+  const { user, signUp, signIn, loading, isAdmin } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  );
+}
 
-  if (user) {
-    return <Navigate to="/" replace />;
+// 🔑 redirect logic
+if (user) {
+  if (isAdmin) {
+    return <Navigate to="/admin" replace />;
+  } else {
+    return <Navigate to="/" replace />; // or "/" if you prefer
   }
+}
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
