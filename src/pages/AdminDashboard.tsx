@@ -4,15 +4,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import CryptoConfiguration from '@/components/admin/CryptoConfiguration';
+import CryptoManagement from '@/components/admin/CryptoManagement';
 import BackupAddresses from '@/components/admin/BackupAddresses';
 import TransactionMonitor from '@/components/admin/TransactionMonitor';
 import SecurityAuditLog from '@/components/admin/SecurityAuditLog';
 import EmergencyControls from '@/components/admin/EmergencyControls';
+import ProductManagement from '@/components/admin/ProductManagement';
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState("crypto-config");
+  const [activeTab, setActiveTab] = useState("products");
 
   if (loading) {
     return (
@@ -47,13 +48,13 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-background/80 backdrop-blur">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Crypto Admin Dashboard</h1>
-          <div className="flex items-center space-x-4">
+        <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h1 className="text-xl sm:text-2xl font-bold">Admin Dashboard</h1>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
             <span className="text-sm text-muted-foreground">
               Welcome, {user.email}
             </span>
-            <Button variant="outline" onClick={signOut}>
+            <Button variant="outline" onClick={signOut} size="sm" className="w-full sm:w-auto">
               Sign Out
             </Button>
           </div>
@@ -64,22 +65,24 @@ const AdminDashboard = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           
           {/* Desktop Tabs */}
-          <TabsList className="hidden md:grid w-full grid-cols-5">
-            <TabsTrigger value="crypto-config">Payment Config</TabsTrigger>
-            <TabsTrigger value="backup-addresses">Backup Addresses</TabsTrigger>
-            <TabsTrigger value="transactions">Transaction Monitor</TabsTrigger>
-            <TabsTrigger value="security-log">Security Audit</TabsTrigger>
-            <TabsTrigger value="emergency">Emergency Controls</TabsTrigger>
+          <TabsList className="hidden lg:grid w-full grid-cols-6">
+            <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="crypto-config">Payments</TabsTrigger>
+            <TabsTrigger value="backup-addresses">Backups</TabsTrigger>
+            <TabsTrigger value="transactions">Transactions</TabsTrigger>
+            <TabsTrigger value="security-log">Security</TabsTrigger>
+            <TabsTrigger value="emergency">Emergency</TabsTrigger>
           </TabsList>
 
           {/* Mobile Dropdown */}
-          <div className="block md:hidden mb-4">
+          <div className="block lg:hidden mb-4">
             <select
               value={activeTab}
               onChange={(e) => setActiveTab(e.target.value)}
-              className="w-full border rounded-md p-3 bg-background"
+              className="w-full border rounded-md p-3 bg-background text-sm"
             >
-              <option value="crypto-config">Payment Config</option>
+              <option value="products">Product Management</option>
+              <option value="crypto-config">Payment Configuration</option>
               <option value="backup-addresses">Backup Addresses</option>
               <option value="transactions">Transaction Monitor</option>
               <option value="security-log">Security Audit</option>
@@ -87,8 +90,12 @@ const AdminDashboard = () => {
             </select>
           </div>
 
+          <TabsContent value="products" className="space-y-6">
+            <ProductManagement />
+          </TabsContent>
+
           <TabsContent value="crypto-config" className="space-y-6">
-            <CryptoConfiguration />
+            <CryptoManagement />
           </TabsContent>
 
           <TabsContent value="backup-addresses" className="space-y-6">

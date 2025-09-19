@@ -77,6 +77,69 @@ export type Database = {
         }
         Relationships: []
       }
+      product_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          price: number
+          stock_quantity: number
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          price: number
+          stock_quantity?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          price?: number
+          stock_quantity?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -252,6 +315,11 @@ export type Database = {
         | "pause_payments"
         | "emergency_reset"
         | "export_logs"
+        | "product_add"
+        | "product_update"
+        | "product_delete"
+        | "product_restock"
+        | "crypto_add"
       transaction_status: "pending" | "confirmed" | "failed" | "cancelled"
     }
     CompositeTypes: {
@@ -391,6 +459,11 @@ export const Constants = {
         "pause_payments",
         "emergency_reset",
         "export_logs",
+        "product_add",
+        "product_update",
+        "product_delete",
+        "product_restock",
+        "crypto_add",
       ],
       transaction_status: ["pending", "confirmed", "failed", "cancelled"],
     },
