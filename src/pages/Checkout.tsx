@@ -1,36 +1,63 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CreditCard, Coins, Copy, Check, Wallet, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, CreditCard, Coins, Copy, Check, Wallet, ShoppingBag, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCartUtils } from '@/contexts/CartContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface CryptoConfig {
+  id: string;
+  currency_symbol: string;
+  currency_name: string;
+  wallet_address: string;
+  is_active: boolean;
+}
 
 const Checkout = () => {
   const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState('card');
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
   const { items, getTotalPrice, clearCart } = useCartUtils();
 
-  // Mock crypto wallet addresses
-  const walletAddresses = {
-    bitcoin: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
-    ethereum: '0x742d35Cc6635C0532925a3b8D238959d8E54ea24',
-  };
+  const [cryptoOptions, setCryptoOptions] = useState<CryptoConfig[]>([]);
+  const [loadingCrypto, setLoadingCrypto] = useState(true);
 
   const total = getTotalPrice();
 
-  const handleCopyAddress = (address: string) => {
+  useEffect(() => {
+    fetchCryptoOptions();
+  }, []);
+
+  const fetchCryptoOptions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('crypto_config')
+        .select('id, currency_symbol, currency_name, wallet_address, is_active')
+        .eq('is_active', true);
+
+      if (error) throw error;
+      setCryptoOptions(data || []);
+    } catch (err) {
+      console.error('Error loading crypto options:', err);
+      toast.error('Could not load crypto payment options');
+    } finally {
+      setLoadingCrypto(false);
+    }
+  };
+
+  const handleCopyAddress = (id: string, address: string) => {
     navigator.clipboard.writeText(address);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopied(id);
+    setTimeout(() => setCopied(null), 2000);
   };
 
   const handlePaymentComplete = () => {
     clearCart();
     navigate('/');
-    // Here you would typically integrate with actual payment processing
     alert('Payment completed! Thank you for your purchase.');
   };
 
@@ -123,7 +150,9 @@ const Checkout = () => {
 
                 {/* Credit Card Payment */}
                 <TabsContent value="card">
+                  {/* LEAVE CARD FORM AS-IS */}
                   <div className="space-y-4">
+                    {/* Card fields */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="firstName">First Name</Label>
@@ -169,78 +198,54 @@ const Checkout = () => {
                 {/* Crypto Payment */}
                 <TabsContent value="crypto">
                   <div className="space-y-6">
-                    <div className="text-center">
-                      <h3 className="font-semibold mb-2">Choose Your Cryptocurrency</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Send the exact amount to the wallet address below
+                    {loadingCrypto ? (
+                      <div className="flex justify-center py-6">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      </div>
+                    ) : cryptoOptions.length === 0 ? (
+                      <p className="text-center text-muted-foreground">
+                        No cryptocurrency options available right now.
                       </p>
-                    </div>
-
-                    {/* Bitcoin Payment */}
-                    <div className="premium-card">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
-                          <Coins className="w-5 h-5 text-white" />
+                    ) : (
+                      cryptoOptions.map((crypto) => (
+                        <div key={crypto.id} className="premium-card">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
+                              <Wallet className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold">
+                                {crypto.currency_name} ({crypto.currency_symbol})
+                              </h4>
+                              {/* Example conversion (BTC base) */}
+                              <p className="text-sm text-muted-foreground">
+                                Amount: {(total / 30000).toFixed(6)} {crypto.currency_symbol}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-3">
+                            <Label>Wallet Address</Label>
+                            <div className="flex gap-2">
+                              <Input 
+                                value={crypto.wallet_address} 
+                                readOnly 
+                                className="font-mono text-xs"
+                              />
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleCopyAddress(crypto.id, crypto.wallet_address)}
+                              >
+                                {copied === crypto.id 
+                                  ? <Check className="w-4 h-4" /> 
+                                  : <Copy className="w-4 h-4" />}
+                              </Button>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-semibold">Bitcoin (BTC)</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Amount: {(total / 30000).toFixed(6)} BTC
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <Label>Wallet Address</Label>
-                        <div className="flex gap-2">
-                          <Input 
-                            value={walletAddresses.bitcoin} 
-                            readOnly 
-                            className="font-mono text-xs"
-                          />
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleCopyAddress(walletAddresses.bitcoin)}
-                          >
-                            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Ethereum Payment */}
-                    <div className="premium-card">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
-                          <Wallet className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold">Ethereum (ETH)</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Amount: {(total / 2000).toFixed(4)} ETH
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <Label>Wallet Address</Label>
-                        <div className="flex gap-2">
-                          <Input 
-                            value={walletAddresses.ethereum} 
-                            readOnly 
-                            className="font-mono text-xs"
-                          />
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleCopyAddress(walletAddresses.ethereum)}
-                          >
-                            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+                      ))
+                    )}
 
                     <div className="bg-accent/10 border border-accent/20 rounded-xl p-4">
                       <h4 className="font-semibold text-accent mb-2">Important Notes:</h4>
