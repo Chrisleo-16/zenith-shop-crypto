@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { X, Plus, Minus, ShoppingBag, CreditCard, Coins } from 'lucide-react';
+import { X, Plus, Minus, ShoppingBag, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartUtils } from '@/contexts/CartContext';
+import CryptoSelector from '@/components/CryptoSelector';
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -20,6 +21,12 @@ const Cart = () => {
   const handleCheckout = () => {
     closeCart();
     navigate('/checkout');
+  };
+
+  const handleCryptoSelect = (crypto: any) => {
+    console.log('Selected crypto:', crypto);
+    closeCart();
+    navigate('/checkout', { state: { paymentMethod: 'crypto', selectedCrypto: crypto } });
   };
 
   return (
@@ -115,10 +122,6 @@ const Cart = () => {
                   <span>Subtotal</span>
                   <span>${getTotalPrice().toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>≈ BTC</span>
-                  <span>{(getTotalPrice() / 30000).toFixed(6)}</span>
-                </div>
                 <div className="flex justify-between font-bold text-lg pt-2 border-t border-border">
                   <span>Total</span>
                   <span>${getTotalPrice().toFixed(2)}</span>
@@ -134,14 +137,10 @@ const Cart = () => {
                   <CreditCard className="w-4 h-4 mr-2" />
                   Checkout
                 </Button>
-                <Button 
-                  variant="crypto" 
-                  className="w-full group"
-                  onClick={handleCheckout}
-                >
-                  <Coins className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
-                  Pay with Crypto
-                </Button>
+                <CryptoSelector 
+                  totalAmount={getTotalPrice()}
+                  onCryptoSelect={handleCryptoSelect}
+                />
               </div>
 
               <Button 
