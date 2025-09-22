@@ -15,6 +15,7 @@ import FAQ from "./pages/FAQ";
 import ProductDetail from "./pages/ProductDetail";
 import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
+import UserDashboard from "./pages/UserDashboard";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/dashboard" element={<UserDashboard />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/categories" element={<Categories />} />
               <Route path="/about" element={<About />} />

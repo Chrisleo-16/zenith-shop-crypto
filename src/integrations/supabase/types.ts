@@ -44,6 +44,33 @@ export type Database = {
         }
         Relationships: []
       }
+      bonus_milestones: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          points_required: number
+          reward_description: string | null
+          reward_title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          points_required: number
+          reward_description?: string | null
+          reward_title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          points_required?: number
+          reward_description?: string | null
+          reward_title?: string
+        }
+        Relationships: []
+      }
       crypto_config: {
         Row: {
           created_at: string
@@ -146,6 +173,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          points: number | null
           updated_at: string
           user_id: string
         }
@@ -154,6 +182,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          points?: number | null
           updated_at?: string
           user_id: string
         }
@@ -162,6 +191,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          points?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -268,6 +298,112 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      user_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          payment_method: string | null
+          product_id: string | null
+          product_name: string | null
+          status: string
+          transaction_hash: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          payment_method?: string | null
+          product_id?: string | null
+          product_name?: string | null
+          status?: string
+          transaction_hash?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          payment_method?: string | null
+          product_id?: string | null
+          product_name?: string | null
+          status?: string
+          transaction_hash?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_payments_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      user_products: {
+        Row: {
+          created_at: string
+          id: string
+          payment_id: string | null
+          product_id: string
+          quantity: number | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payment_id?: string | null
+          product_id: string
+          quantity?: number | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payment_id?: string | null
+          product_id?: string
+          quantity?: number | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_products_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "user_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_products_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

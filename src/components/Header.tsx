@@ -49,6 +49,11 @@ const Header = () => {
             <Link to="/categories" className="text-sm font-medium text-foreground hover:text-accent smooth-transition">
               Categories
             </Link>
+            {user && (
+              <Link to="/dashboard" className="text-sm font-medium text-foreground hover:text-accent smooth-transition">
+                Dashboard
+              </Link>
+            )}
             <Link to="/about" className="text-sm font-medium text-foreground hover:text-accent smooth-transition">
               About
             </Link>
@@ -134,6 +139,11 @@ const Header = () => {
                 <Link to="/categories" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2">
                   Categories
                 </Link>
+                {user && (
+                  <Link to="/dashboard" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2">
+                    Dashboard
+                  </Link>
+                )}
                 <Link to="/about" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2">
                   About
                 </Link>
