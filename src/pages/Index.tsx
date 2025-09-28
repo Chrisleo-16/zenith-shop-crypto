@@ -26,16 +26,16 @@ const Index = () => {
       <footer className="bg-midnight text-white py-12">
         <div className="container mx-auto px-4 text-center">
           <div className="mb-6">
-            <h3 className="text-2xl font-heading font-bold gradient-text mb-2">CryptoShop</h3>
-            <p className="text-white/70">Premium • Modern • Crypto</p>
+            <h3 className="text-2xl font-heading font-bold gradient-text mb-2">SecureVPN Pro</h3>
+            <p className="text-white/70">Privacy • Security • Freedom</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <div>
-              <h4 className="font-semibold mb-3">Quick Links</h4>
+              <h4 className="font-semibold mb-3">Services</h4>
               <ul className="space-y-2 text-sm text-white/70">
-                <li><Link to="/about" className="hover:text-accent smooth-transition">About Us</Link></li>
-                <li><Link to="/contact" className="hover:text-accent smooth-transition">Contact</Link></li>
-                <li><Link to="/faq" className="hover:text-accent smooth-transition">FAQ</Link></li>
+                <li><Link to="/about" className="hover:text-accent smooth-transition">VPN Solutions</Link></li>
+                <li><Link to="/contact" className="hover:text-accent smooth-transition">Proxy Services</Link></li>
+                <li><Link to="/faq" className="hover:text-accent smooth-transition">Enterprise Plans</Link></li>
               </ul>
             </div>
             <div>
@@ -43,21 +43,21 @@ const Index = () => {
               <ul className="space-y-2 text-sm text-white/70">
                 <li>Bitcoin (BTC)</li>
                 <li>Ethereum (ETH)</li>
-                <li>Credit Cards</li>
+                <li>Other Cryptocurrencies</li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-3">Support</h4>
               <ul className="space-y-2 text-sm text-white/70">
                 <li><Link to="/faq" className="hover:text-accent smooth-transition">Help Center</Link></li>
-                <li><Link to="/contact" className="hover:text-accent smooth-transition">Shipping Info</Link></li>
-                <li><Link to="/contact" className="hover:text-accent smooth-transition">Returns</Link></li>
+                <li><Link to="/contact" className="hover:text-accent smooth-transition">Setup Guide</Link></li>
+                <li><Link to="/contact" className="hover:text-accent smooth-transition">24/7 Support</Link></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-white/20 pt-6">
             <p className="text-sm text-white/50">
-              © {new Date().getFullYear()} CryptoShop. All rights reserved. Built by <a href="https://github.com/Chrisleo-16/"> <u>Leo Chrisben</u> </a> for the future.
+              © {new Date().getFullYear()} SecureVPN Pro. All rights reserved. Built by <a href="https://github.com/Chrisleo-16/"> <u>Leo Chrisben</u> </a> for your privacy.
             </p>
           </div>
         </div>
