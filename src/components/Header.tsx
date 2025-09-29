@@ -22,7 +22,7 @@ const Header = () => {
             </div>
             <div>
               <h1 className="text-xl font-heading font-bold gradient-text">
-                CryptoShop
+                Proxy-Purchase
               </h1>
               <p className="text-xs text-muted-foreground hidden sm:block">
                 Premium • Modern • Crypto
