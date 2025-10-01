@@ -1,18 +1,28 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ProductCard from '@/components/ProductCard';
 import { sampleProducts, categories } from '@/data/products';
 import { Product } from '@/contexts/CartContext';
+import Header from '@/components/Header';
+import Cart from '@/components/Cart';
 
 const Categories = () => {
   const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState('All Products');
+  const [searchParams] = useSearchParams();
+  const categoryFromUrl = searchParams.get('category');
+  const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl || 'All Plans');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
+  useEffect(() => {
+    if (categoryFromUrl) {
+      setSelectedCategory(categoryFromUrl);
+    }
+  }, [categoryFromUrl]);
+
   const filteredProducts = sampleProducts.filter(product => 
-    selectedCategory === 'All Products' || product.category === selectedCategory
+    selectedCategory === 'All Plans' || product.category === selectedCategory
   );
 
   const handleViewProduct = (product: Product) => {
@@ -20,12 +30,14 @@ const Categories = () => {
   };
 
   const getCategoryCount = (category: string) => {
-    if (category === 'All Products') return sampleProducts.length;
+    if (category === 'All Plans') return sampleProducts.length;
     return sampleProducts.filter(p => p.category === category).length;
   };
 
   return (
     <div className="min-h-screen bg-background">
+      <Header />
+      <Cart />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">

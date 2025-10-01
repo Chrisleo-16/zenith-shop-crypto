@@ -68,6 +68,22 @@ export const sampleProducts: Product[] = [
     description: 'Best value package combining premium VPN and proxy services with additional security features.',
     category: 'Combo Plans',
   },
+  {
+    id: '9',
+    name: 'Premium Fullz - US',
+    price: 89.99,
+    image: productTech,
+    description: 'Complete personal information package with verified details for US citizens.',
+    category: 'Fullz',
+  },
+  {
+    id: '10',
+    name: 'Business Fullz - CA',
+    price: 129.99,
+    image: productFashion,
+    description: 'Comprehensive business information package for Canadian entities with full documentation.',
+    category: 'Fullz',
+  },
 ];
 
 export const categories = [
@@ -80,4 +96,5 @@ export const categories = [
   'Proxy Services',
   'Enterprise Plans',
   'Combo Plans',
+  'Fullz',
 ];

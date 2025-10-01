@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Checkout from "./pages/Checkout";
 import Categories from "./pages/Categories";
+import Others from "./pages/Others";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
@@ -16,6 +17,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
+import Preloader from "./components/Preloader";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +28,7 @@ const App = () => (
         <CartProvider>
           <Toaster />
           <Sonner />
+          <Preloader />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -34,6 +37,7 @@ const App = () => (
               <Route path="/dashboard" element={<UserDashboard />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/categories" element={<Categories />} />
+              <Route path="/others" element={<Others />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/faq" element={<FAQ />} />

@@ -1,10 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Search, Menu, X, Store, User, Shield, LogOut } from 'lucide-react';
+import { ShoppingCart, Search, Menu, X, Store, User, Shield, LogOut, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartUtils } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from '@/components/ui/navigation-menu';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -43,12 +50,70 @@ const Header = () => {
 
           {/* Navigation - Desktop */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/categories" className="text-sm font-medium text-foreground hover:text-accent smooth-transition">
-              Products
-            </Link>
-            <Link to="/categories" className="text-sm font-medium text-foreground hover:text-accent smooth-transition">
-              Categories
-            </Link>
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-sm font-medium bg-transparent hover:bg-transparent">
+                    VPN
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent className="bg-background/95 backdrop-blur border border-border/40">
+                    <div className="w-48 p-2">
+                      <Link to="/categories?category=Daily Plans" className="block px-4 py-2 text-sm hover:bg-muted rounded-md">
+                        Daily Plans
+                      </Link>
+                      <Link to="/categories?category=Weekly Plans" className="block px-4 py-2 text-sm hover:bg-muted rounded-md">
+                        Weekly Plans
+                      </Link>
+                      <Link to="/categories?category=Monthly Plans" className="block px-4 py-2 text-sm hover:bg-muted rounded-md">
+                        Monthly Plans
+                      </Link>
+                      <Link to="/categories?category=Annual Plans" className="block px-4 py-2 text-sm hover:bg-muted rounded-md">
+                        Annual Plans
+                      </Link>
+                    </div>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-sm font-medium bg-transparent hover:bg-transparent">
+                    Proxy
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent className="bg-background/95 backdrop-blur border border-border/40">
+                    <div className="w-48 p-2">
+                      <Link to="/categories?category=Proxy Services" className="block px-4 py-2 text-sm hover:bg-muted rounded-md">
+                        Premium Proxies
+                      </Link>
+                      <Link to="/categories?category=Enterprise Plans" className="block px-4 py-2 text-sm hover:bg-muted rounded-md">
+                        Enterprise Proxies
+                      </Link>
+                    </div>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-sm font-medium bg-transparent hover:bg-transparent">
+                    Fullz
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent className="bg-background/95 backdrop-blur border border-border/40">
+                    <div className="w-48 p-2">
+                      <Link to="/categories?category=Fullz" className="block px-4 py-2 text-sm hover:bg-muted rounded-md">
+                        Premium Fullz
+                      </Link>
+                      <Link to="/categories?category=Fullz" className="block px-4 py-2 text-sm hover:bg-muted rounded-md">
+                        Business Fullz
+                      </Link>
+                    </div>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <Link to="/others" className="text-sm font-medium text-foreground hover:text-accent smooth-transition inline-flex items-center h-10 px-4 py-2">
+                    Others
+                  </Link>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+
             {user && (
               <Link to="/dashboard" className="text-sm font-medium text-foreground hover:text-accent smooth-transition">
                 Dashboard
@@ -133,14 +198,29 @@ const Header = () => {
 
               {/* Navigation */}
               <nav className="space-y-2">
-                <Link to="/categories" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2">
-                  Products
-                </Link>
-                <Link to="/categories" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2">
-                  Categories
-                </Link>
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-muted-foreground px-2 mb-1">VPN</p>
+                  <Link to="/categories?category=Daily Plans" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2 pl-4">
+                    Daily Plans
+                  </Link>
+                  <Link to="/categories?category=Monthly Plans" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2 pl-4">
+                    Monthly Plans
+                  </Link>
+                </div>
+                <div className="space-y-1 pt-2">
+                  <p className="text-xs font-semibold text-muted-foreground px-2 mb-1">Proxy</p>
+                  <Link to="/categories?category=Proxy Services" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2 pl-4">
+                    Premium Proxies
+                  </Link>
+                </div>
+                <div className="space-y-1 pt-2">
+                  <p className="text-xs font-semibold text-muted-foreground px-2 mb-1">Others</p>
+                  <Link to="/others" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2 pl-4">
+                    Accounts & More
+                  </Link>
+                </div>
                 {user && (
-                  <Link to="/dashboard" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2">
+                  <Link to="/dashboard" className="block text-sm font-medium text-foreground hover:text-accent smooth-transition py-2 border-t border-border/40 mt-2 pt-4">
                     Dashboard
                   </Link>
                 )}
