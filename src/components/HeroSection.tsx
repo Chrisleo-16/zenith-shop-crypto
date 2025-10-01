@@ -196,7 +196,7 @@ const HeroSection = () => {
               variants={fadeUp}
               className="text-lg text-white/80 leading-relaxed mb-12"
             >
-              At <strong>[Your Site Name]</strong>, we’re more than just a VPN &
+              At <strong>Proxy-Purchase</strong>, we’re more than just a VPN &
               proxy provider. We are a team of tech enthusiasts, cybersecurity
               experts, and privacy advocates committed to making the internet
               safer, freer, and more accessible for everyone.
