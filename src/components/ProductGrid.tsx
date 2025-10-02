@@ -31,36 +31,36 @@ const ProductGrid = ({ onViewProduct }: ProductGridProps) => {
   });
 
   return (
-    <section className="py-16 bg-gradient-to-b from-background to-secondary/20">
+    <section className="py-20 bg-gradient-to-b from-background via-secondary/20 to-background">
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4">
+        <div className="text-center mb-16 animate-fade-in">
+          <h2 className="text-4xl md:text-5xl font-heading font-bold mb-6">
             Featured <span className="gradient-text">Products</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Discover our curated collection of premium products, 
-            all available with traditional and cryptocurrency payments.
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Discover our curated collection of premium services, 
+            all available with secure cryptocurrency payments.
           </p>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8 items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col md:flex-row gap-4 mb-10 items-center justify-between animate-fade-in">
+          <div className="flex items-center gap-4 flex-wrap justify-center md:justify-start">
             <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-muted-foreground">Filter by:</span>
+              <Filter className="w-4 h-4 text-accent" />
+              <span className="text-sm font-semibold text-foreground">Filter by:</span>
             </div>
             
             {/* Category Filter */}
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2 flex-wrap justify-center md:justify-start">
               {categories.map((category) => (
                 <Button
                   key={category}
                   variant={selectedCategory === category ? 'premium' : 'outline'}
                   size="sm"
                   onClick={() => setSelectedCategory(category)}
-                  className="text-xs"
+                  className="text-xs hover:scale-105"
                 >
                   {category}
                 </Button>
@@ -70,13 +70,13 @@ const ProductGrid = ({ onViewProduct }: ProductGridProps) => {
 
           {/* Sort */}
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground">Sort by:</span>
+            <span className="text-sm font-semibold text-foreground">Sort by:</span>
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-44 hover:border-accent smooth-transition">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="name">Name (A-Z)</SelectItem>
                 <SelectItem value="price-low">Price: Low to High</SelectItem>
                 <SelectItem value="price-high">Price: High to Low</SelectItem>
               </SelectContent>
@@ -85,20 +85,35 @@ const ProductGrid = ({ onViewProduct }: ProductGridProps) => {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {sortedProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onViewProduct={onViewProduct}
-            />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
+          {sortedProducts.map((product, index) => (
+            <div 
+              key={product.id} 
+              style={{ animationDelay: `${index * 0.1}s` }}
+              className="animate-fade-in"
+            >
+              <ProductCard
+                product={product}
+                onViewProduct={onViewProduct}
+              />
+            </div>
           ))}
         </div>
 
         {/* Show more products message */}
         {sortedProducts.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No products found in this category.</p>
+          <div className="text-center py-16 animate-fade-in">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-secondary/30 flex items-center justify-center">
+              <Filter className="w-10 h-10 text-muted-foreground" />
+            </div>
+            <p className="text-lg text-muted-foreground font-medium">No products found in this category.</p>
+            <Button 
+              variant="outline" 
+              className="mt-4"
+              onClick={() => setSelectedCategory('All Products')}
+            >
+              View All Products
+            </Button>
           </div>
         )}
       </div>

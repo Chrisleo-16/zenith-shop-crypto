@@ -18,6 +18,7 @@ import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
 import Preloader from "./components/Preloader";
+import RouteLoader from "./components/RouteLoader";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
           <Sonner />
           <Preloader />
           <BrowserRouter>
+            <RouteLoader />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />

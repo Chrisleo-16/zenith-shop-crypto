@@ -63,13 +63,20 @@ const Checkout = () => {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-b from-background via-secondary/20 to-background flex items-center justify-center">
         <div className="container mx-auto px-4 py-16">
-          <div className="text-center">
-            <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
-            <h1 className="text-2xl font-heading font-bold mb-2">Your cart is empty</h1>
-            <p className="text-muted-foreground mb-6">Add some products to checkout</p>
-            <Button onClick={() => navigate('/')}>
+          <div className="text-center max-w-md mx-auto">
+            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-accent/20 to-neon-purple/20 flex items-center justify-center">
+              <ShoppingBag className="w-12 h-12 text-muted-foreground animate-pulse" />
+            </div>
+            <h1 className="text-3xl font-heading font-bold mb-3 gradient-text">Your cart is empty</h1>
+            <p className="text-muted-foreground mb-8 text-lg">Discover our premium products and start shopping</p>
+            <Button 
+              onClick={() => navigate('/')} 
+              variant="premium"
+              size="lg"
+              className="w-full sm:w-auto"
+            >
               Continue Shopping
             </Button>
           </div>
@@ -79,14 +86,22 @@ const Checkout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background via-secondary/10 to-background">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+        <div className="flex items-center gap-4 mb-8 animate-fade-in">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate('/')}
+            className="hover:scale-110 smooth-transition"
+          >
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <h1 className="text-3xl font-heading font-bold">Checkout</h1>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-heading font-bold gradient-text">Secure Checkout</h1>
+            <p className="text-sm text-muted-foreground mt-1">Complete your purchase safely</p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
