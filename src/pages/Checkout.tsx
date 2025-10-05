@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CreditCard, Coins, Copy, Check, Wallet, ShoppingBag, Loader2 } from 'lucide-react';
+import { ArrowLeft, CreditCard, Coins, Copy, Check, Wallet, ShoppingBag, Loader2, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +25,8 @@ const Checkout = () => {
 
   const [cryptoOptions, setCryptoOptions] = useState<CryptoConfig[]>([]);
   const [loadingCrypto, setLoadingCrypto] = useState(true);
+  const [paymentProof, setPaymentProof] = useState<File | null>(null);
+  const [proofPreview, setProofPreview] = useState<string | null>(null);
 
   const total = getTotalPrice();
 
@@ -55,10 +57,35 @@ const Checkout = () => {
     setTimeout(() => setCopied(null), 2000);
   };
 
+  const handleProofUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size must be less than 5MB');
+        return;
+      }
+      setPaymentProof(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProofPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeProof = () => {
+    setPaymentProof(null);
+    setProofPreview(null);
+  };
+
   const handlePaymentComplete = () => {
+    if (paymentMethod === 'crypto' && !paymentProof) {
+      toast.error('Please upload payment proof screenshot');
+      return;
+    }
     clearCart();
     navigate('/');
-    alert('Payment completed! Thank you for your purchase.');
+    toast.success('Payment submitted! Thank you for your purchase.');
   };
 
   if (items.length === 0) {
@@ -272,12 +299,51 @@ const Checkout = () => {
                       </ul>
                     </div>
 
+                    {/* Payment Proof Upload */}
+                    <div className="premium-card">
+                      <Label className="mb-2 block">Upload Payment Screenshot *</Label>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Upload a screenshot of your transaction as proof of payment
+                      </p>
+                      
+                      {proofPreview ? (
+                        <div className="relative">
+                          <img 
+                            src={proofPreview} 
+                            alt="Payment proof" 
+                            className="w-full h-48 object-cover rounded-lg border-2 border-accent/20"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-2 right-2"
+                            onClick={removeProof}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-accent/30 rounded-lg cursor-pointer hover:bg-accent/5 smooth-transition">
+                          <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                          <span className="text-sm text-muted-foreground">Click to upload screenshot</span>
+                          <span className="text-xs text-muted-foreground mt-1">PNG, JPG up to 5MB</span>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/png,image/jpeg,image/jpg"
+                            onChange={handleProofUpload}
+                          />
+                        </label>
+                      )}
+                    </div>
+
                     <Button 
                       variant="crypto" 
                       className="w-full"
                       onClick={handlePaymentComplete}
+                      disabled={!paymentProof}
                     >
-                      I've Sent the Payment
+                      Submit Payment & Proof
                     </Button>
                   </div>
                 </TabsContent>

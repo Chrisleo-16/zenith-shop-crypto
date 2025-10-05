@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, Upload, X } from 'lucide-react';
 
 interface CryptoConfig {
   id: string;
@@ -25,6 +25,8 @@ const CryptoConfiguration = () => {
     wallet_address: '',
     min_confirmation: 3
   });
+  const [qrImage, setQrImage] = useState<File | null>(null);
+  const [qrPreview, setQrPreview] = useState<string | null>(null);
   const [testingConnection, setTestingConnection] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -55,6 +57,29 @@ const CryptoConfiguration = () => {
       wallet_address: config.wallet_address,
       min_confirmation: config.min_confirmation
     });
+    setQrImage(null);
+    setQrPreview(null);
+  };
+
+  const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('File size must be less than 2MB');
+        return;
+      }
+      setQrImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setQrPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeQr = () => {
+    setQrImage(null);
+    setQrPreview(null);
   };
 
   const handleSave = async (configId: string) => {
@@ -193,6 +218,41 @@ const CryptoConfiguration = () => {
                         onChange={(e) => setEditForm(prev => ({ ...prev, min_confirmation: parseInt(e.target.value) }))}
                       />
                     </div>
+                    
+                    {/* QR Code Upload */}
+                    <div className="space-y-2">
+                      <Label>QR Code (Optional)</Label>
+                      <p className="text-xs text-muted-foreground">Upload a QR code for this wallet address</p>
+                      {qrPreview ? (
+                        <div className="relative inline-block">
+                          <img 
+                            src={qrPreview} 
+                            alt="QR Code" 
+                            className="w-32 h-32 object-cover rounded-lg border-2 border-primary/20"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute -top-2 -right-2 h-6 w-6"
+                            onClick={removeQr}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent/5 smooth-transition">
+                          <Upload className="w-6 h-6 text-muted-foreground mb-1" />
+                          <span className="text-xs text-muted-foreground">Upload QR Code</span>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/png,image/jpeg,image/jpg"
+                            onChange={handleQrUpload}
+                          />
+                        </label>
+                      )}
+                    </div>
+
                     <div className="flex space-x-2">
                       <Button onClick={() => handleSave(config.id)}>
                         Save Changes
