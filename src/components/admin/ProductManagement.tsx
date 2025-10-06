@@ -1,561 +1,264 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { toast } from 'sonner';
-import { Loader2, Plus, Edit, Trash2, Upload, Download, Package } from 'lucide-react';
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { Edit, Trash2, Download, PlusCircle, Search, Filter } from "lucide-react";
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface Product {
-  id: string;
+  id: number;
   name: string;
-  description: string;
-  price: number;
   category: string;
-  image_url: string;
+  price: number;
   stock_quantity: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-interface ProductCategory {
-  id: string;
-  name: string;
-  description: string;
-  is_active: boolean;
+  image_url?: string;
+  description?: string;
 }
 
 const ProductManagement = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [loading, setLoading] = useState(true);
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showCSVDialog, setShowCSVDialog] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [uploadingCSV, setUploadingCSV] = useState(false);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 8;
 
-  const [productForm, setProductForm] = useState({
-    name: '',
-    description: '',
-    price: '',
-    category: '',
-    stock_quantity: '',
-    image_url: '',
-    is_active: true
-  });
+  // Fetch all products
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from("products").select("*");
+    if (error) {
+      toast.error("Error loading products: " + error.message);
+    } else {
+      setProducts(data || []);
+      setFilteredProducts(data || []);
+    }
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     fetchProducts();
-    fetchCategories();
-  }, []);
+  }, [fetchProducts]);
 
-  const fetchProducts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setProducts(data || []);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      toast.error('Failed to load products');
+  // Filter and Search
+  useEffect(() => {
+    let result = [...products];
+    if (selectedCategory !== "All") {
+      result = result.filter(p => p.category === selectedCategory);
     }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('product_categories')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
-      setCategories(data || []);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      toast.error('Failed to load categories');
-    } finally {
-      setLoading(false);
+    if (searchTerm.trim() !== "") {
+      result = result.filter(p =>
+        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
-  };
+    setFilteredProducts(result);
+    setPage(1);
+  }, [searchTerm, selectedCategory, products]);
 
-  const handleImageUpload = async (file: File) => {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+  // Handle Product Add/Edit/Delete
+  const handleAddProduct = async () => {
+    const name = prompt("Enter product name:");
+    if (!name) return;
+    const { data, error } = await supabase
+      .from("products")
+      .insert([{ name, price: 0, category: "Uncategorized", stock_quantity: 0 }])
+      .select();
 
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(filePath);
-
-      return data.publicUrl;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error('Failed to upload image');
-      return null;
-    }
-  };
-
-  const handleSaveProduct = async () => {
-    try {
-      const productData = {
-        name: productForm.name,
-        description: productForm.description,
-        price: parseFloat(productForm.price),
-        category: productForm.category,
-        stock_quantity: parseInt(productForm.stock_quantity),
-        image_url: productForm.image_url,
-        is_active: productForm.is_active
-      };
-
-      if (editingProduct) {
-        const { error } = await supabase
-          .from('products')
-          .update(productData)
-          .eq('id', editingProduct.id);
-
-        if (error) throw error;
-
-        await supabase
-          .from('security_audit_log')
-          .insert({
-            action: 'product_update',
-            description: `Updated product: ${productForm.name}`
-          });
-
-        toast.success('Product updated successfully');
-      } else {
-        const { error } = await supabase
-          .from('products')
-          .insert(productData);
-
-        if (error) throw error;
-
-        await supabase
-          .from('security_audit_log')
-          .insert({
-            action: 'product_add',
-            description: `Added new product: ${productForm.name}`
-          });
-
-        toast.success('Product added successfully');
-      }
-
-      setShowAddDialog(false);
-      setEditingProduct(null);
-      resetForm();
+    if (error) toast.error("Error adding product: " + error.message);
+    else {
+      toast.success("Product added!");
       fetchProducts();
-    } catch (error) {
-      console.error('Error saving product:', error);
-      toast.error('Failed to save product');
+    }
+  };
+
+  const handleEdit = async (product: Product) => {
+    const newName = prompt("Enter new name:", product.name);
+    if (!newName) return;
+    const { error } = await supabase
+      .from("products")
+      .update({ name: newName })
+      .eq("id", product.id);
+    if (error) toast.error("Error updating product");
+    else {
+      toast.success("Product updated!");
+      fetchProducts();
     }
   };
 
   const handleDeleteProduct = async (product: Product) => {
-    try {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', product.id);
-
-      if (error) throw error;
-
-      await supabase
-        .from('security_audit_log')
-        .insert({
-          action: 'product_delete',
-          description: `Deleted product: ${product.name}`
-        });
-
-      toast.success('Product deleted successfully');
+    if (!confirm(`Delete ${product.name}?`)) return;
+    const { error } = await supabase.from("products").delete().eq("id", product.id);
+    if (error) toast.error("Error deleting product");
+    else {
+      toast.success("Product deleted!");
       fetchProducts();
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      toast.error('Failed to delete product');
     }
   };
 
   const handleRestockProduct = async (product: Product, newStock: number) => {
-    try {
-      const { error } = await supabase
-        .from('products')
-        .update({ stock_quantity: newStock })
-        .eq('id', product.id);
-
-      if (error) throw error;
-
-      await supabase
-        .from('security_audit_log')
-        .insert({
-          action: 'product_restock',
-          description: `Restocked ${product.name} to ${newStock} units`
-        });
-
-      toast.success('Product restocked successfully');
+    const { error } = await supabase
+      .from("products")
+      .update({ stock_quantity: newStock })
+      .eq("id", product.id);
+    if (error) toast.error("Error updating stock");
+    else {
+      toast.success("Stock updated!");
       fetchProducts();
-    } catch (error) {
-      console.error('Error restocking product:', error);
-      toast.error('Failed to restock product');
     }
   };
 
-  const handleCSVUpload = async () => {
-    if (!csvFile) return;
-
-    setUploadingCSV(true);
-    try {
-      const text = await csvFile.text();
-      const lines = text.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim());
-      
-      // Expected headers: name,description,price,category,stock_quantity,image_url
-      const requiredHeaders = ['name', 'price', 'category'];
-      const hasRequiredHeaders = requiredHeaders.every(header => 
-        headers.some(h => h.toLowerCase() === header.toLowerCase())
-      );
-
-      if (!hasRequiredHeaders) {
-        toast.error('CSV must contain columns: name, price, category');
-        return;
-      }
-
-      const products = [];
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim());
-        if (values.length >= 3 && values[0]) {
-          const nameIndex = headers.findIndex(h => h.toLowerCase() === 'name');
-          const priceIndex = headers.findIndex(h => h.toLowerCase() === 'price');
-          const categoryIndex = headers.findIndex(h => h.toLowerCase() === 'category');
-          const descIndex = headers.findIndex(h => h.toLowerCase() === 'description');
-          const stockIndex = headers.findIndex(h => h.toLowerCase() === 'stock_quantity');
-          const imageIndex = headers.findIndex(h => h.toLowerCase() === 'image_url');
-
-          products.push({
-            name: values[nameIndex],
-            price: parseFloat(values[priceIndex]),
-            category: values[categoryIndex],
-            description: descIndex >= 0 ? values[descIndex] : '',
-            stock_quantity: stockIndex >= 0 ? parseInt(values[stockIndex]) || 0 : 0,
-            image_url: imageIndex >= 0 ? values[imageIndex] : '',
-            is_active: true
-          });
-        }
-      }
-
-      const { error } = await supabase
-        .from('products')
-        .insert(products);
-
-      if (error) throw error;
-
-      await supabase
-        .from('security_audit_log')
-        .insert({
-          action: 'product_add',
-          description: `Bulk imported ${products.length} products via CSV`
-        });
-
-      toast.success(`Successfully imported ${products.length} products`);
-      setShowCSVDialog(false);
-      setCsvFile(null);
-      fetchProducts();
-    } catch (error) {
-      console.error('Error uploading CSV:', error);
-      toast.error('Failed to import CSV');
-    } finally {
-      setUploadingCSV(false);
-    }
-  };
-
-  const handleEdit = (product: Product) => {
-    setEditingProduct(product);
-    setProductForm({
-      name: product.name,
-      description: product.description || '',
-      price: product.price.toString(),
-      category: product.category,
-      stock_quantity: product.stock_quantity.toString(),
-      image_url: product.image_url || '',
-      is_active: product.is_active
-    });
-    setShowAddDialog(true);
-  };
-
-  const resetForm = () => {
-    setProductForm({
-      name: '',
-      description: '',
-      price: '',
-      category: '',
-      stock_quantity: '',
-      image_url: '',
-      is_active: true
-    });
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
+  // Pagination
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = filteredProducts.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Product Management
-            </CardTitle>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <Dialog open={showCSVDialog} onOpenChange={setShowCSVDialog}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Import CSV
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Import Products from CSV</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label>CSV File</Label>
-                      <Input
-                        type="file"
-                        accept=".csv"
-                        onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
-                      />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Required columns: name, price, category. Optional: description, stock_quantity, image_url
-                      </p>
-                    </div>
-                    <Button 
-                      onClick={handleCSVUpload} 
-                      disabled={!csvFile || uploadingCSV}
-                      className="w-full"
-                    >
-                      {uploadingCSV ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                      Import
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+    <div className="p-6 space-y-4">
+      <Card className="shadow-sm">
+        <CardHeader className="flex justify-between items-center">
+          <h3 className="text-xl font-semibold">Product Management</h3>
+          <Button onClick={handleAddProduct}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Product
+          </Button>
+        </CardHeader>
 
-              <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="w-full sm:w-auto">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Product
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingProduct ? 'Edit Product' : 'Add New Product'}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Product Name</Label>
-                        <Input
-                          value={productForm.name}
-                          onChange={(e) => setProductForm(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="Enter product name"
-                        />
-                      </div>
-                      <div>
-                        <Label>Price</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={productForm.price}
-                          onChange={(e) => setProductForm(prev => ({ ...prev, price: e.target.value }))}
-                          placeholder="0.00"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Category</Label>
-                        <Select
-                          value={productForm.category}
-                          onValueChange={(value) => setProductForm(prev => ({ ...prev, category: value }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.map((category) => (
-                              <SelectItem key={category.id} value={category.name}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>Stock Quantity</Label>
-                        <Input
-                          type="number"
-                          value={productForm.stock_quantity}
-                          onChange={(e) => setProductForm(prev => ({ ...prev, stock_quantity: e.target.value }))}
-                          placeholder="0"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label>Description</Label>
-                      <Textarea
-                        value={productForm.description}
-                        onChange={(e) => setProductForm(prev => ({ ...prev, description: e.target.value }))}
-                        placeholder="Product description..."
-                        rows={3}
-                      />
-                    </div>
-
-                    <div>
-                      <Label>Image URL</Label>
-                      <Input
-                        value={productForm.image_url}
-                        onChange={(e) => setProductForm(prev => ({ ...prev, image_url: e.target.value }))}
-                        placeholder="https://example.com/image.jpg"
-                      />
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        checked={productForm.is_active}
-                        onCheckedChange={(checked) => setProductForm(prev => ({ ...prev, is_active: checked }))}
-                      />
-                      <Label>Active</Label>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button onClick={handleSaveProduct} className="flex-1">
-                        {editingProduct ? 'Update Product' : 'Add Product'}
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => {
-                          setShowAddDialog(false);
-                          setEditingProduct(null);
-                          resetForm();
-                        }}
-                        className="flex-1"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+        <CardContent>
+          <div className="flex flex-wrap items-center gap-3 mb-5">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                className="pl-8"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <select
+                className="border rounded-md px-2 py-1 text-sm"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                <option value="All">All Categories</option>
+                {Array.from(new Set(products.map(p => p.category))).map(cat => (
+                  <option key={cat}>{cat}</option>
+                ))}
+              </select>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {products.map((product) => (
-              <Card key={product.id} className="overflow-hidden">
-                <div className="aspect-video bg-muted relative">
-                  {product.image_url ? (
-                    <img 
-                      src={product.image_url} 
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Package className="h-12 w-12 text-muted-foreground" />
+
+          {loading ? (
+            <div className="text-center text-muted-foreground py-10">
+              Loading products...
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {paginatedProducts.map((product) => (
+                <Card key={product.id} className="flex flex-col">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">{product.name}</h4>
+                      <span className="text-xs text-muted-foreground">
+                        {product.category}
+                      </span>
                     </div>
-                  )}
-                  <div className="absolute top-2 right-2">
-                    <Badge variant={product.is_active ? "default" : "secondary"}>
-                      {product.is_active ? "Active" : "Inactive"}
-                    </Badge>
-                  </div>
+                  </CardHeader>
+
+                  <CardContent className="space-y-2">
+                    <div className="text-sm">Price: ${product.price.toFixed(2)}</div>
+                    <div className="text-sm flex items-center gap-2">
+                      Stock:
+                      <Input
+                        type="number"
+                        className="w-20 h-7"
+                        defaultValue={product.stock_quantity}
+                        onBlur={(e) => {
+                          const newStock = parseInt(e.target.value);
+                          if (
+                            !isNaN(newStock) &&
+                            newStock !== product.stock_quantity
+                          ) {
+                            handleRestockProduct(product, newStock);
+                          }
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex justify-between items-center mt-3">
+                      <div className="flex gap-2">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => handleEdit(product)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          onClick={() => handleDeleteProduct(product)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                          navigator.clipboard.writeText(product.image_url || "");
+                          toast.success("Image URL copied!");
+                        }}
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        Copy URL
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {filteredProducts.length === 0 && (
+                <div className="col-span-full text-center text-muted-foreground py-10">
+                  No products found.
                 </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-lg mb-2 line-clamp-1">{product.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                    {product.description || 'No description'}
-                  </p>
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-lg font-bold">${product.price}</span>
-                    <Badge variant="outline">{product.category}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm">Stock: {product.stock_quantity}</span>
-                    <Input
-                      type="number"
-                      className="w-20 h-7"
-                      onBlur={(e) => {
-                        const newStock = parseInt(e.target.value);
-                        if (newStock !== product.stock_quantity) {
-                          handleRestockProduct(product, newStock);
-                        }
-                      }}
-                      defaultValue={product.stock_quantity}
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(product)}
-                      className="flex-1"
-                    >
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteProduct(product)}
-                      className="flex-1"
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          {products.length === 0 && (
-            <div className="text-center py-12">
-              <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No products found</h3>
-              <p className="text-muted-foreground mb-4">
-                Start by adding your first product or importing from CSV
-              </p>
+              )}
             </div>
           )}
         </CardContent>
+
+        {!loading && totalPages > 1 && (
+          <CardFooter className="flex justify-center gap-2">
+            <Button
+              variant="outline"
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              Prev
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              disabled={page === totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </Button>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );
