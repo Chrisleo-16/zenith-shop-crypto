@@ -58,63 +58,60 @@ fetchCategories();
 }, []);
 
 const fetchProducts = async () => {
-try {
-const { data, error } = await supabase
-.from('products')
-.select('*')
-.order('created_at', { ascending: false });
+    try {
+      const { data, error } = await (supabase as any)
+        .from('services')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-if (error) throw error;  
-  setProducts(data || []);  
-} catch (error) {  
-  console.error('Error fetching products:', error);  
-  toast.error('Failed to load products');  
-}
-
-};
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast.error('Failed to load products');
+    } finally {
+      setLoading(false);
+    }
+  };
 
 const fetchCategories = async () => {
-try {
-const { data, error } = await supabase
-.from('product_categories')
-.select('*')
-.order('name');
+    try {
+      const { data, error } = await (supabase as any)
+        .from('service_categories')
+        .select('*')
+        .order('name');
 
-if (error) throw error;  
-  setCategories(data || []);  
-} catch (error) {  
-  console.error('Error fetching categories:', error);  
-  toast.error('Failed to load categories');  
-} finally {  
-  setLoading(false);  
-}
-
-};
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      toast.error('Failed to load categories');
+    }
+  };
 
 const handleImageUpload = async (file: File) => {
-try {
-const fileExt = file.name.split('.').pop();
-const fileName = ${Math.random()}.${fileExt};
-const filePath = ${fileName};
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
 
-const { error: uploadError } = await supabase.storage  
-    .from('product-images')  
-    .upload(filePath, file);  
+      const { error: uploadError } = await supabase.storage
+        .from('service-images')
+        .upload(filePath, file);
 
-  if (uploadError) throw uploadError;  
+      if (uploadError) throw uploadError;
 
-  const { data } = supabase.storage  
-    .from('product-images')  
-    .getPublicUrl(filePath);  
+      const { data } = supabase.storage
+        .from('service-images')
+        .getPublicUrl(filePath);
 
-  return data.publicUrl;  
-} catch (error) {  
-  console.error('Error uploading image:', error);  
-  toast.error('Failed to upload image');  
-  return null;  
-}
-
-};
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+      return null;
+    }
+  };
 
 const handleSaveProduct = async () => {
 try {
@@ -128,38 +125,38 @@ image_url: productForm.image_url,
 is_active: productForm.is_active
 };
 
-if (editingProduct) {  
-    const { error } = await supabase  
-      .from('products')  
-      .update(productData)  
-      .eq('id', editingProduct.id);  
+if (editingProduct) {
+      const { error } = await (supabase as any)
+        .from('services')
+        .update(productData)
+        .eq('id', editingProduct.id);
 
-    if (error) throw error;  
+      if (error) throw error;
 
-    await supabase  
-      .from('security_audit_log')  
-      .insert({  
-        action: 'product_update',  
-        description: `Updated product: ${productForm.name}`  
-      });  
+      await supabase
+        .from('security_audit_log')
+        .insert({
+          action: 'product_update',
+          description: `Updated product: ${productForm.name}`
+        });
 
-    toast.success('Product updated successfully');  
-  } else {  
-    const { error } = await supabase  
-      .from('products')  
-      .insert(productData);  
+      toast.success('Product updated successfully');
+    } else {
+      const { error } = await (supabase as any)
+        .from('services')
+        .insert(productData);
 
-    if (error) throw error;  
+      if (error) throw error;
 
-    await supabase  
-      .from('security_audit_log')  
-      .insert({  
-        action: 'product_add',  
-        description: `Added new product: ${productForm.name}`  
-      });  
+      await supabase
+        .from('security_audit_log')
+        .insert({
+          action: 'product_add',
+          description: `Added new product: ${productForm.name}`
+        });
 
-    toast.success('Product added successfully');  
-  }  
+      toast.success('Product added successfully');
+    }
 
   setShowAddDialog(false);  
   setEditingProduct(null);  
@@ -173,54 +170,52 @@ if (editingProduct) {
 };
 
 const handleDeleteProduct = async (product: Product) => {
-try {
-const { error } = await supabase
-.from('products')
-.delete()
-.eq('id', product.id);
+    try {
+      const { error } = await (supabase as any)
+        .from('services')
+        .delete()
+        .eq('id', product.id);
 
-if (error) throw error;  
+      if (error) throw error;
 
-  await supabase  
-    .from('security_audit_log')  
-    .insert({  
-      action: 'product_delete',  
-      description: `Deleted product: ${product.name}`  
-    });  
+      await supabase
+        .from('security_audit_log')
+        .insert({
+          action: 'product_delete',
+          description: `Deleted product: ${product.name}`
+        });
 
-  toast.success('Product deleted successfully');  
-  fetchProducts();  
-} catch (error) {  
-  console.error('Error deleting product:', error);  
-  toast.error('Failed to delete product');  
-}
-
-};
+      toast.success('Product deleted successfully');
+      fetchProducts();
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast.error('Failed to delete product');
+    }
+  };
 
 const handleRestockProduct = async (product: Product, newStock: number) => {
-try {
-const { error } = await supabase
-.from('products')
-.update({ stock_quantity: newStock })
-.eq('id', product.id);
+    try {
+      const { error } = await (supabase as any)
+        .from('services')
+        .update({ stock_quantity: newStock })
+        .eq('id', product.id);
 
-if (error) throw error;  
+      if (error) throw error;
 
-  await supabase  
-    .from('security_audit_log')  
-    .insert({  
-      action: 'product_restock',  
-      description: `Restocked ${product.name} to ${newStock} units`  
-    });  
+      await supabase
+        .from('security_audit_log')
+        .insert({
+          action: 'product_restock',
+          description: `Restocked ${product.name} to ${newStock} units`
+        });
 
-  toast.success('Product restocked successfully');  
-  fetchProducts();  
-} catch (error) {  
-  console.error('Error restocking product:', error);  
-  toast.error('Failed to restock product');  
-}
-
-};
+      toast.success('Product restocked successfully');
+      fetchProducts();
+    } catch (error) {
+      console.error('Error restocking product:', error);
+      toast.error('Failed to restock product');
+    }
+  };
 
 const handleCSVUpload = async () => {
 if (!csvFile) return;
@@ -265,11 +260,11 @@ try {
     }  
   }  
 
-  const { error } = await supabase  
-    .from('products')  
-    .insert(products);  
+  const { error } = await (supabase as any)
+    .from('services')
+    .insert(products);
 
-  if (error) throw error;  
+  if (error) throw error;
 
   await supabase  
     .from('security_audit_log')  
@@ -445,14 +440,31 @@ Import
                   />  
                 </div>  
 
-                <div>  
-                  <Label>Image URL</Label>  
-                  <Input  
-                    value={productForm.image_url}  
-                    onChange={(e) => setProductForm(prev => ({ ...prev, image_url: e.target.value }))}  
-                    placeholder="https://example.com/image.jpg"  
-                  />  
-                </div>  
+                <div>
+                  <Label>Product Image</Label>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const url = await handleImageUpload(file);
+                        if (url) {
+                          setProductForm(prev => ({ ...prev, image_url: url }));
+                        }
+                      }
+                    }}
+                  />
+                  {productForm.image_url && (
+                    <div className="mt-2">
+                      <img
+                        src={productForm.image_url}
+                        alt="Preview"
+                        className="h-20 w-20 object-cover rounded"
+                      />
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex items-center space-x-2">  
                   <Switch  

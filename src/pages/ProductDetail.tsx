@@ -25,7 +25,7 @@ const ProductDetail = () => {
 
   const fetchProduct = async (productId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('services')
         .select('*')
         .eq('id', productId)
@@ -46,7 +46,7 @@ const ProductDetail = () => {
       setProduct(formattedProduct);
 
       // Fetch related products
-      const { data: relatedData } = await supabase
+      const { data: relatedData } = await (supabase as any)
         .from('services')
         .select('*')
         .eq('category', (data as any).category)

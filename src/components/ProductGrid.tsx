@@ -25,7 +25,7 @@ const ProductGrid = ({ onViewProduct }: ProductGridProps) => {
 
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('services')
         .select('*')
         .eq('is_active', true);
@@ -52,7 +52,7 @@ const ProductGrid = ({ onViewProduct }: ProductGridProps) => {
 
   const fetchCategories = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('service_categories')
         .select('name')
         .eq('is_active', true);
