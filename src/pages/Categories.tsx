@@ -3,17 +3,27 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ProductCard from '@/components/ProductCard';
-import { sampleProducts, categories } from '@/data/products';
 import { Product } from '@/contexts/CartContext';
 import Header from '@/components/Header';
 import Cart from '@/components/Cart';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const Categories = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const categoryFromUrl = searchParams.get('category');
+  const searchQuery = searchParams.get('search') || '';
   const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl || 'All Plans');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>(['All Plans']);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     if (categoryFromUrl) {
@@ -21,17 +31,64 @@ const Categories = () => {
     }
   }, [categoryFromUrl]);
 
-  const filteredProducts = sampleProducts.filter(product => 
-    selectedCategory === 'All Plans' || product.category === selectedCategory
-  );
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) throw error;
+
+      const formattedProducts: Product[] = (data || []).map((service: any) => ({
+        id: service.id,
+        name: service.name,
+        price: Number(service.price),
+        image: service.image_url || '/placeholder.svg',
+        description: service.description || '',
+        category: service.category,
+      }));
+
+      setProducts(formattedProducts);
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      toast.error('Failed to load products');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('service_categories')
+        .select('name')
+        .eq('is_active', true);
+
+      if (error) throw error;
+
+      const categoryNames = ['All Plans', ...(data || []).map((cat: any) => cat.name)];
+      setCategories(categoryNames);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
+  };
+
+  const filteredProducts = products.filter(product => {
+    const matchesCategory = selectedCategory === 'All Plans' || product.category === selectedCategory;
+    const matchesSearch = !searchQuery || 
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   const handleViewProduct = (product: Product) => {
     navigate(`/product/${product.id}`);
   };
 
   const getCategoryCount = (category: string) => {
-    if (category === 'All Plans') return sampleProducts.length;
-    return sampleProducts.filter(p => p.category === category).length;
+    if (category === 'All Plans') return products.length;
+    return products.filter(p => p.category === category).length;
   };
 
   return (
@@ -81,7 +138,7 @@ const Categories = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Total Products:</span>
-                    <span className="font-medium">{sampleProducts.length}</span>
+                    <span className="font-medium">{products.length}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Categories:</span>
@@ -129,10 +186,14 @@ const Categories = () => {
             </div>
 
             {/* Products */}
-            {filteredProducts.length === 0 ? (
+            {loading ? (
+              <div className="flex justify-center items-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground text-lg">
-                  No products found in this category.
+                  {searchQuery ? `No products found for "${searchQuery}"` : 'No products found in this category.'}
                 </p>
               </div>
             ) : (

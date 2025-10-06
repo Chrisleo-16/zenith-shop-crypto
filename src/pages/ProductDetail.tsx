@@ -2,8 +2,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingCart, Heart, Share2, Star, Shield, Truck, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartUtils } from '@/contexts/CartContext';
-import { sampleProducts } from '@/data/products';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Product } from '@/contexts/CartContext';
+import { toast } from 'sonner';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -11,8 +13,72 @@ const ProductDetail = () => {
   const { addItem } = useCartUtils();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const product = sampleProducts.find(p => p.id === id);
+  useEffect(() => {
+    if (id) {
+      fetchProduct(id);
+    }
+  }, [id]);
+
+  const fetchProduct = async (productId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('id', productId)
+        .eq('is_active', true)
+        .single();
+
+      if (error) throw error;
+
+      const formattedProduct: Product = {
+        id: data.id,
+        name: (data as any).name,
+        price: Number((data as any).price),
+        image: (data as any).image_url || '/placeholder.svg',
+        description: (data as any).description || '',
+        category: (data as any).category,
+      };
+
+      setProduct(formattedProduct);
+
+      // Fetch related products
+      const { data: relatedData } = await supabase
+        .from('services')
+        .select('*')
+        .eq('category', (data as any).category)
+        .eq('is_active', true)
+        .neq('id', productId)
+        .limit(3);
+
+      const formattedRelated: Product[] = (relatedData || []).map((service: any) => ({
+        id: service.id,
+        name: service.name,
+        price: Number(service.price),
+        image: service.image_url || '/placeholder.svg',
+        description: service.description || '',
+        category: service.category,
+      }));
+
+      setRelatedProducts(formattedRelated);
+    } catch (err) {
+      console.error('Error fetching product:', err);
+      toast.error('Failed to load product');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -29,12 +95,8 @@ const ProductDetail = () => {
     for (let i = 0; i < quantity; i++) {
       addItem(product);
     }
-    // Show success message or redirect to cart
+    toast.success(`Added ${quantity} ${product.name} to cart`);
   };
-
-  const relatedProducts = sampleProducts
-    .filter(p => p.category === product.category && p.id !== product.id)
-    .slice(0, 3);
 
   return (
     <div className="min-h-screen bg-background">

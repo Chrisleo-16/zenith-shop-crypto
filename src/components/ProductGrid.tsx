@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ProductCard from './ProductCard';
-import { sampleProducts, categories } from '@/data/products';
 import { Product } from '@/contexts/CartContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface ProductGridProps {
   onViewProduct: (product: Product) => void;
@@ -13,8 +14,59 @@ interface ProductGridProps {
 const ProductGrid = ({ onViewProduct }: ProductGridProps) => {
   const [selectedCategory, setSelectedCategory] = useState('All Products');
   const [sortBy, setSortBy] = useState('name');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>(['All Products']);
+  const [loading, setLoading] = useState(true);
 
-  const filteredProducts = sampleProducts.filter(product => 
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) throw error;
+
+      const formattedProducts: Product[] = (data || []).map((service: any) => ({
+        id: service.id,
+        name: service.name,
+        price: Number(service.price),
+        image: service.image_url || '/placeholder.svg',
+        description: service.description || '',
+        category: service.category,
+      }));
+
+      setProducts(formattedProducts);
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      toast.error('Failed to load products');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('service_categories')
+        .select('name')
+        .eq('is_active', true);
+
+      if (error) throw error;
+
+      const categoryNames = ['All Products', ...(data || []).map((cat: any) => cat.name)];
+      setCategories(categoryNames);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
+  };
+
+  const filteredProducts = products.filter(product => 
     selectedCategory === 'All Products' || product.category === selectedCategory
   );
 
@@ -85,20 +137,26 @@ const ProductGrid = ({ onViewProduct }: ProductGridProps) => {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
-          {sortedProducts.map((product, index) => (
-            <div 
-              key={product.id} 
-              style={{ animationDelay: `${index * 0.1}s` }}
-              className="animate-fade-in"
-            >
-              <ProductCard
-                product={product}
-                onViewProduct={onViewProduct}
-              />
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
+            {sortedProducts.map((product, index) => (
+              <div 
+                key={product.id} 
+                style={{ animationDelay: `${index * 0.1}s` }}
+                className="animate-fade-in"
+              >
+                <ProductCard
+                  product={product}
+                  onViewProduct={onViewProduct}
+                />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Show more products message */}
         {sortedProducts.length === 0 && (

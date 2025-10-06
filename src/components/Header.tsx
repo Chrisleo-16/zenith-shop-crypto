@@ -15,8 +15,16 @@ import {
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { getTotalItems, toggleCart } = useCartUtils();
   const { user, isAdmin, signOut } = useAuth();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      window.location.href = `/categories?search=${encodeURIComponent(searchQuery)}`;
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -39,13 +47,15 @@ const Header = () => {
 
           {/* Search Bar - Desktop */}
           <div className="hidden md:flex flex-1 max-w-lg mx-8">
-            <div className="relative w-full">
+            <form onSubmit={handleSearch} className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search products..."
                 className="pl-10 rounded-xl border-border/40 bg-background/50 backdrop-blur"
               />
-            </div>
+            </form>
           </div>
 
           {/* Navigation - Desktop */}
@@ -188,13 +198,15 @@ const Header = () => {
           <div className="md:hidden border-t border-border/40 py-4">
             <div className="space-y-4">
               {/* Mobile Search */}
-              <div className="relative">
+              <form onSubmit={handleSearch} className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search products..."
                   className="pl-10 rounded-xl border-border/40"
                 />
-              </div>
+              </form>
 
               {/* Navigation */}
               <nav className="space-y-2">

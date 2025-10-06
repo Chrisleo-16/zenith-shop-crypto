@@ -19,6 +19,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
 import Preloader from "./components/Preloader";
 import RouteLoader from "./components/RouteLoader";
+import Chatbot from "./components/Chatbot";
+import WhatsAppButton from "./components/WhatsAppButton";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +49,8 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <Chatbot />
+            <WhatsAppButton />
           </BrowserRouter>
         </CartProvider>
       </AuthProvider>
