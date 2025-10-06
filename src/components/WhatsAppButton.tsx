@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 
 const WhatsAppButton = () => {
   // Admin should update this number in the component or add it to system settings
-  const phoneNumber = '1234567890'; // Replace with actual WhatsApp business number (without +)
+  const phoneNumber = '27846789193'; // Replace with actual WhatsApp business number (without +)
   const defaultMessage = 'Hello! I have a question about your Proxy-Purchase services.';
   
   const handleWhatsAppClick = () => {
