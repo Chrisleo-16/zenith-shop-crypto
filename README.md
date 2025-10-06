@@ -1,73 +1,64 @@
-# Welcome to your Lovable project
+🌐 Zenith Crypto Shop
 
-## Project info
+Overview
 
-**URL**: https://lovable.dev/projects/6a9643b3-5f29-4cb5-8bf1-097e9424fbb3
+Zenith Crypto Shop is a modern VPN commerce platform that allows users to buy and manage VPN services and digital accounts with ease.
+The store supports multiple payment options, including cryptocurrency payments, giving users the flexibility and privacy they deserve.
 
-## How can I edit this code?
+Built for simplicity, speed, and secure transactions — Zenith Crypto Shop redefines how users purchase VPNs and related online services.
 
-There are several ways of editing your application.
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/6a9643b3-5f29-4cb5-8bf1-097e9424fbb3) and start prompting.
+🛍️ Features
 
-Changes made via Lovable will be committed automatically to this repo.
+🔒 VPN Marketplace – Browse, select, and purchase VPN services from a variety of providers.
 
-**Use your preferred IDE**
+💰 Crypto Payments – Pay seamlessly using popular cryptocurrencies for maximum privacy and convenience.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+🧾 Digital Product Management – Access and manage purchased VPNs or accounts directly from your dashboard.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+⚡ Instant Delivery – Receive instant confirmation and activation details after successful payment.
 
-Follow these steps:
+📱 Responsive UI – Optimized for both desktop and mobile users with a smooth, intuitive design.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+
+
+
+---
+
+🧠 Tech Stack
+
+Zenith Crypto Shop is powered by modern, scalable technologies:
+
+⚛️ React + TypeScript – Fast, type-safe front-end development.
+
+⚡ Vite – Lightning-fast build tool for instant reloads and optimized performance.
+
+🎨 Tailwind CSS + shadcn-ui – Clean and modern UI components.
+
+🔗 Supabase / API Integration – For real-time data handling and backend logic.
+
+💳 Crypto Payment Integration – Secure blockchain-based payment system for VPN purchases.
+
+
+
+---
+
+🧑‍💻 Getting Started
+
+You can run this project locally in just a few steps.
+
+# Step 1: Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Step 2: Navigate to the project folder
+cd zenith-crypto-shop
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Step 3: Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Start the development server
 npm run dev
-```
 
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/6a9643b3-5f29-4cb5-8bf1-097e9424fbb3) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Your app will now be available at: https://zenith-shop-crypto.vercel.app/
