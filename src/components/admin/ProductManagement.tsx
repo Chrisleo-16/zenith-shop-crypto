@@ -29,6 +29,8 @@ import {
   Trash2,
   Upload,
   Package,
+  Download,
+  FileUp,
 } from "lucide-react";
 
 interface Product {
@@ -39,6 +41,7 @@ interface Product {
   category: string;
   image_url: string;
   is_active: boolean;
+  stock: number;
   created_at: string;
   updated_at: string;
 }
@@ -64,6 +67,7 @@ const ProductManagement = () => {
     category: "",
     image_url: "",
     is_active: true,
+    stock: 0,
   });
 
   useEffect(() => {
@@ -71,7 +75,7 @@ const ProductManagement = () => {
     fetchCategories();
   }, []);
 
-  // ✅ Fetch products from "services"
+  // ✅ Fetch products from Supabase
   const fetchProducts = async () => {
     setLoading(true);
     try {
@@ -90,7 +94,7 @@ const ProductManagement = () => {
     }
   };
 
-  // ✅ Fetch categories safely
+  // ✅ Fetch categories (safe)
   const fetchCategories = async () => {
     try {
       const { data, error } = await supabase
@@ -99,7 +103,7 @@ const ProductManagement = () => {
         .order("name");
 
       if (error) {
-        console.warn("No service_categories table found or fetch failed.");
+        console.warn("No service_categories table found.");
         return;
       }
       setCategories(data || []);
@@ -108,22 +112,20 @@ const ProductManagement = () => {
     }
   };
 
-  // ✅ Upload image safely
+  // ✅ Upload image
   const handleImageUpload = async (file: File) => {
     try {
       const fileExt = file.name.split(".").pop();
       const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
-
       const { error: uploadError } = await supabase.storage
         .from("service-images")
-        .upload(filePath, file);
+        .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage
         .from("service-images")
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
 
       return data.publicUrl;
     } catch (error: any) {
@@ -133,10 +135,10 @@ const ProductManagement = () => {
     }
   };
 
-  // ✅ Add or update product
+  // ✅ Save product
   const handleSaveProduct = async () => {
     if (!productForm.name || !productForm.price || !productForm.category) {
-      toast.error("Please fill in all required fields.");
+      toast.error("Please fill all required fields.");
       return;
     }
 
@@ -148,6 +150,7 @@ const ProductManagement = () => {
         category: productForm.category,
         image_url: productForm.image_url || "",
         is_active: productForm.is_active,
+        stock: Number(productForm.stock),
       };
 
       let error = null;
@@ -167,24 +170,20 @@ const ProductManagement = () => {
 
       if (error) throw error;
 
-      toast.success(
-        editingProduct
-          ? "Product updated successfully."
-          : "Product added successfully."
-      );
-
+      toast.success(editingProduct ? "Service updated." : "Service added.");
       setShowAddDialog(false);
       setEditingProduct(null);
       resetForm();
       fetchProducts();
     } catch (error: any) {
-      console.error("Error saving product:", error.message);
-      toast.error("Failed to save product.");
+      console.error("Error saving service:", error.message);
+      toast.error("Failed to save service.");
     }
   };
 
   // ✅ Delete product
   const handleDeleteProduct = async (product: Product) => {
+    if (!confirm(`Delete "${product.name}"?`)) return;
     try {
       const { error } = await supabase
         .from("services")
@@ -193,11 +192,10 @@ const ProductManagement = () => {
 
       if (error) throw error;
 
-      toast.success("Product deleted successfully.");
+      toast.success("Service deleted.");
       fetchProducts();
     } catch (error: any) {
-      console.error("Error deleting product:", error.message);
-      toast.error("Failed to delete product.");
+      toast.error("Failed to delete service.");
     }
   };
 
@@ -210,6 +208,7 @@ const ProductManagement = () => {
       category: product.category,
       image_url: product.image_url || "",
       is_active: product.is_active,
+      stock: product.stock || 0,
     });
     setShowAddDialog(true);
   };
@@ -222,7 +221,65 @@ const ProductManagement = () => {
       category: "",
       image_url: "",
       is_active: true,
+      stock: 0,
     });
+  };
+
+  // ✅ Export to CSV
+  const handleExportCSV = () => {
+    if (products.length === 0) {
+      toast.info("No products to export.");
+      return;
+    }
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [
+        ["Name", "Description", "Price", "Category", "Stock", "Active"],
+        ...products.map((p) => [
+          p.name,
+          p.description,
+          p.price,
+          p.category,
+          p.stock,
+          p.is_active ? "Yes" : "No",
+        ]),
+      ]
+        .map((e) => e.join(","))
+        .join("\n");
+
+    const link = document.createElement("a");
+    link.href = encodeURI(csvContent);
+    link.download = "services_export.csv";
+    link.click();
+  };
+
+  // ✅ Import CSV
+  const handleImportCSV = async (file: File) => {
+    try {
+      const text = await file.text();
+      const rows = text.split("\n").slice(1);
+      const newProducts = rows
+        .map((row) => row.split(","))
+        .filter((r) => r.length >= 5)
+        .map((r) => ({
+          name: r[0],
+          description: r[1],
+          price: parseFloat(r[2]),
+          category: r[3],
+          stock: parseInt(r[4]) || 0,
+          is_active: r[5]?.trim().toLowerCase() === "yes",
+        }));
+
+      const { error } = await supabase.from("services").insert(newProducts);
+      if (error) throw error;
+
+      toast.success("CSV imported successfully!");
+      fetchProducts();
+    } catch (error: any) {
+      console.error("Error importing CSV:", error.message);
+      toast.error("Failed to import CSV.");
+    }
   };
 
   if (loading) {
@@ -243,144 +300,184 @@ const ProductManagement = () => {
               Service Management
             </CardTitle>
 
-            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="w-full sm:w-auto">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Service
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingProduct ? "Edit Service" : "Add New Service"}
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>Service Name</Label>
-                      <Input
-                        value={productForm.name}
-                        onChange={(e) =>
-                          setProductForm((p) => ({
-                            ...p,
-                            name: e.target.value,
-                          }))
-                        }
-                        placeholder="Enter service name"
-                      />
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={handleExportCSV}>
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => document.getElementById("csvInput")?.click()}
+              >
+                <FileUp className="h-4 w-4 mr-2" />
+                Import CSV
+              </Button>
+              <input
+                id="csvInput"
+                type="file"
+                accept=".csv"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImportCSV(file);
+                }}
+              />
+
+              <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+                <DialogTrigger asChild>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Service
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingProduct ? "Edit Service" : "Add New Service"}
+                    </DialogTitle>
+                  </DialogHeader>
+
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Service Name</Label>
+                        <Input
+                          value={productForm.name}
+                          onChange={(e) =>
+                            setProductForm((p) => ({
+                              ...p,
+                              name: e.target.value,
+                            }))
+                          }
+                          placeholder="Enter service name"
+                        />
+                      </div>
+                      <div>
+                        <Label>Price ($)</Label>
+                        <Input
+                          type="number"
+                          value={productForm.price}
+                          onChange={(e) =>
+                            setProductForm((p) => ({
+                              ...p,
+                              price: e.target.value,
+                            }))
+                          }
+                          placeholder="0.00"
+                        />
+                      </div>
                     </div>
+
                     <div>
-                      <Label>Price</Label>
+                      <Label>Stock</Label>
                       <Input
                         type="number"
-                        value={productForm.price}
+                        value={productForm.stock}
                         onChange={(e) =>
                           setProductForm((p) => ({
                             ...p,
-                            price: e.target.value,
+                            stock: parseInt(e.target.value) || 0,
                           }))
                         }
-                        placeholder="0.00"
+                        placeholder="0"
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <Label>Category</Label>
-                    <Select
-                      value={productForm.category}
-                      onValueChange={(v) =>
-                        setProductForm((p) => ({ ...p, category: v }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.length > 0 ? (
-                          categories.map((c) => (
-                            <SelectItem key={c.id} value={c.name}>
-                              {c.name}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="General">General</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label>Description</Label>
-                    <Textarea
-                      value={productForm.description}
-                      onChange={(e) =>
-                        setProductForm((p) => ({
-                          ...p,
-                          description: e.target.value,
-                        }))
-                      }
-                      placeholder="Describe your service..."
-                      rows={3}
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Service Image</Label>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const url = await handleImageUpload(file);
-                          if (url)
-                            setProductForm((p) => ({ ...p, image_url: url }));
+                    <div>
+                      <Label>Category</Label>
+                      <Select
+                        value={productForm.category}
+                        onValueChange={(v) =>
+                          setProductForm((p) => ({ ...p, category: v }))
                         }
-                      }}
-                    />
-                    {productForm.image_url && (
-                      <div className="mt-2">
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.length > 0 ? (
+                            categories.map((c) => (
+                              <SelectItem key={c.id} value={c.name}>
+                                {c.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="General">General</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>Description</Label>
+                      <Textarea
+                        value={productForm.description}
+                        onChange={(e) =>
+                          setProductForm((p) => ({
+                            ...p,
+                            description: e.target.value,
+                          }))
+                        }
+                        rows={3}
+                        placeholder="Describe your service..."
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Service Image</Label>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const url = await handleImageUpload(file);
+                            if (url)
+                              setProductForm((p) => ({ ...p, image_url: url }));
+                          }
+                        }}
+                      />
+                      {productForm.image_url && (
                         <img
                           src={productForm.image_url}
                           alt="Preview"
-                          className="h-20 w-20 object-cover rounded"
+                          className="mt-2 h-20 w-20 object-cover rounded"
                         />
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      checked={productForm.is_active}
-                      onCheckedChange={(checked) =>
-                        setProductForm((p) => ({ ...p, is_active: checked }))
-                      }
-                    />
-                    <Label>Active</Label>
-                  </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        checked={productForm.is_active}
+                        onCheckedChange={(checked) =>
+                          setProductForm((p) => ({ ...p, is_active: checked }))
+                        }
+                      />
+                      <Label>Active</Label>
+                    </div>
 
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Button onClick={handleSaveProduct} className="flex-1">
-                      {editingProduct ? "Update" : "Add"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => {
-                        setShowAddDialog(false);
-                        setEditingProduct(null);
-                        resetForm();
-                      }}
-                    >
-                      Cancel
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button onClick={handleSaveProduct} className="flex-1">
+                        {editingProduct ? "Update" : "Add"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => {
+                          setShowAddDialog(false);
+                          setEditingProduct(null);
+                          resetForm();
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </CardHeader>
 
@@ -406,6 +503,7 @@ const ProductManagement = () => {
                     </Badge>
                   </div>
                 </div>
+
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-lg mb-2 line-clamp-1">
                     {product.name}
@@ -413,12 +511,15 @@ const ProductManagement = () => {
                   <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
                     {product.description || "No description"}
                   </p>
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-lg font-bold">
-                      ${product.price.toFixed(2)}
-                    </span>
+
+                  <div className="flex justify-between mb-2">
+                    <span className="text-lg font-bold">${product.price}</span>
                     <Badge variant="outline">{product.category}</Badge>
                   </div>
+
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Stock: <strong>{product.stock}</strong>
+                  </p>
 
                   <div className="flex gap-2">
                     <Button
@@ -427,8 +528,7 @@ const ProductManagement = () => {
                       onClick={() => handleEdit(product)}
                       className="flex-1"
                     >
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
+                      <Edit className="h-4 w-4 mr-1" /> Edit
                     </Button>
                     <Button
                       variant="destructive"
@@ -436,26 +536,13 @@ const ProductManagement = () => {
                       onClick={() => handleDeleteProduct(product)}
                       className="flex-1"
                     >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
+                      <Trash2 className="h-4 w-4 mr-1" /> Delete
                     </Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-
-          {products.length === 0 && (
-            <div className="text-center py-12">
-              <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">
-                No services found
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                Start by adding your first service
-              </p>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
