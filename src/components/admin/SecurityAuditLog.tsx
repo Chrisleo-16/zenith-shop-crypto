@@ -144,10 +144,10 @@ const SecurityAuditLog = () => {
       if (insertError) console.warn('Audit insert failed:', insertError);
 
       toast.success('Audit logs exported successfully');
-    } catch (error: any) {
-      console.error('Error exporting logs:', error);
-      toast.error(`Failed to export audit logs: ${error.message}`);
-    } finally {
+    } catch (error) {
+      console.error("Error fetching audit logs:", error.message || error);
+      toast.error(`Failed to load audit logs: ${error.message || error}`);
+    }finally {
       setExporting(false);
     }
   };
