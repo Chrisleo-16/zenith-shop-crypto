@@ -4,17 +4,39 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Loader2, Download, Search, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AuditLog {
   id: string;
   user_id: string | null;
-  action: 'login' | 'logout' | 'address_update' | 'backup_address_add' | 'backup_address_delete' | 'test_connection' | 'pause_payments' | 'emergency_reset' | 'export_logs';
+  action:
+    | 'login'
+    | 'logout'
+    | 'address_update'
+    | 'backup_address_add'
+    | 'backup_address_delete'
+    | 'test_connection'
+    | 'pause_payments'
+    | 'emergency_reset'
+    | 'export_logs';
   description: string | null;
-  ip_address: unknown;
+  ip_address: string | null;
   user_agent: string | null;
   metadata: any;
   created_at: string;
@@ -37,16 +59,12 @@ const SecurityAuditLog = () => {
   }, []);
 
   const fetchLogs = async () => {
+    setLoading(true);
     try {
+      // Removed invalid profiles join to avoid query failure
       let query = supabase
         .from('security_audit_log')
-        .select(`
-          *,
-          profiles:user_id (
-            email,
-            full_name
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(200);
 
@@ -55,16 +73,17 @@ const SecurityAuditLog = () => {
       }
 
       if (searchTerm) {
-        query = query.or(`description.ilike.%${searchTerm}%,action.ilike.%${searchTerm}%`);
+        query = query.or(
+          `description.ilike.%${searchTerm}%,action.ilike.%${searchTerm}%,ip_address.ilike.%${searchTerm}%`
+        );
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
       setLogs((data as unknown as AuditLog[]) || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching audit logs:', error);
-      toast.error('Failed to load audit logs');
+      toast.error(`Failed to load audit logs: ${error.message}`);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -78,19 +97,26 @@ const SecurityAuditLog = () => {
 
   const handleExportLogs = async () => {
     setExporting(true);
-    
     try {
-      // In a real application, you might want to implement server-side export
-      // For now, we'll create a simple CSV export
+      if (logs.length === 0) {
+        toast.error('No logs available to export');
+        setExporting(false);
+        return;
+      }
+
       const csvContent = [
         'Date,User,Action,Description,IP Address',
-        ...logs.map(log => [
-          new Date(log.created_at).toISOString(),
-          log.profiles?.email || 'System',
-          log.action,
-          log.description || '',
-          log.ip_address || ''
-        ].map(field => `"${field}"`).join(','))
+        ...logs.map((log) =>
+          [
+            new Date(log.created_at).toISOString(),
+            log.profiles?.email || 'System',
+            log.action,
+            log.description || '',
+            log.ip_address || '',
+          ]
+            .map((field) => `"${field}"`)
+            .join(',')
+        ),
       ].join('\n');
 
       const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -103,18 +129,24 @@ const SecurityAuditLog = () => {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
 
-      // Log export action
-      await supabase
+      // Log export event safely (ignore if fails)
+      const { error: insertError } = await supabase
         .from('security_audit_log')
-        .insert({
-          action: 'export_logs',
-          description: 'Exported security audit logs'
-        });
+        .insert([
+          {
+            action: 'export_logs',
+            description: 'Exported security audit logs',
+            user_id: null, // optional
+            ip_address: '127.0.0.1',
+          },
+        ]);
+
+      if (insertError) console.warn('Audit insert failed:', insertError);
 
       toast.success('Audit logs exported successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error exporting logs:', error);
-      toast.error('Failed to export audit logs');
+      toast.error(`Failed to export audit logs: ${error.message}`);
     } finally {
       setExporting(false);
     }
@@ -211,9 +243,7 @@ const SecurityAuditLog = () => {
                   <SelectItem value="export_logs">Export Logs</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={fetchLogs}>
-                Apply Filters
-              </Button>
+              <Button onClick={fetchLogs}>Apply Filters</Button>
             </div>
 
             {/* Audit Log Table */}
@@ -231,7 +261,10 @@ const SecurityAuditLog = () => {
                 <TableBody>
                   {logs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      <TableCell
+                        colSpan={5}
+                        className="text-center py-8 text-muted-foreground"
+                      >
                         No audit logs found
                       </TableCell>
                     </TableRow>
@@ -242,7 +275,9 @@ const SecurityAuditLog = () => {
                           {new Date(log.created_at).toLocaleString()}
                         </TableCell>
                         <TableCell>
-                          {log.profiles?.email || log.profiles?.full_name || 'System'}
+                          {log.profiles?.email ||
+                            log.profiles?.full_name ||
+                            'System'}
                         </TableCell>
                         <TableCell>
                           <Badge variant={getActionColor(log.action)}>
@@ -251,7 +286,7 @@ const SecurityAuditLog = () => {
                         </TableCell>
                         <TableCell>{log.description || '--'}</TableCell>
                         <TableCell className="font-mono text-xs">
-                          {(log.ip_address as string) || '--'}
+                          {log.ip_address || '--'}
                         </TableCell>
                       </TableRow>
                     ))
